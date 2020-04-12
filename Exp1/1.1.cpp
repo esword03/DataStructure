@@ -1,7 +1,7 @@
 #include <iostream>
 #include <cmath>
 #include <algorithm>
-#include <stack>
+#include "1.1.h"
 using namespace std;
 
 int isp(char op) {
@@ -91,8 +91,8 @@ private:
 	bool Get1Operands(int& right);
 	void AddOperator(char op);
 
-	stack<int> opds;
-	stack<char> oprs;
+	Stack<int> opds;
+	Stack<char> oprs;
 };
 void Calculator::DoOperator1(char op) {
 	int right;
