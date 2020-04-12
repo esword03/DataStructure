@@ -14,6 +14,7 @@ int isp(char op) {
 		break;
 	case '*':
 	case '/':
+	case'%':
 		ret = 5;
 		break;
 	case '^':
@@ -23,12 +24,17 @@ int isp(char op) {
 		ret = 1;
 		break;
 	case ')':
-		ret = 8;
+		ret = 10;
 		break;
 	case '#':
 		ret = 0;
 		break;
-
+	case'u':
+		ret = 9;
+		break;
+	case'a':
+		ret = 10;
+		break;
 	default:
 		break;
 	}
@@ -45,13 +51,14 @@ int icp(char op) {
 		break;
 	case '*':
 	case '/':
+	case'%':
 		ret = 4;
 		break;
 	case '^':
 		ret = 6;
 		break;
 	case '(':
-		ret = 8;
+		ret = 10;
 		break;
 	case ')':
 		ret = 1;
@@ -59,7 +66,12 @@ int icp(char op) {
 	case '#':
 		ret = 0;
 		break;
-
+	case'u':
+		ret = 8;
+		break;
+	case'a':
+		ret = 10;
+		break;
 	default:
 		break;
 	}
@@ -75,11 +87,44 @@ private:
 	void AddOperand(int value);
 	bool Get2Operands(int& left, int& right);
 	void DoOperator(char op);
+	void DoOperator1(char op);
+	bool Get1Operands(int& right);
 	void AddOperator(char op);
 
 	stack<int> opds;
 	stack<char> oprs;
 };
+void Calculator::DoOperator1(char op) {
+	int right;
+	bool result;
+
+	result = Get1Operands(right);
+	if (!result) {
+		Clear();
+		return;
+	}
+	switch (op)
+	{
+	case 'u':
+		opds.push(-right);
+		break;
+	case 'a':
+		opds.push(abs(right));
+		break;
+		return;
+	};
+}
+
+bool Calculator::Get1Operands(int& right) {
+	if (opds.empty()) {
+		cout << "NULL" << endl;
+		return false;
+	}
+	right = opds.top();
+	opds.pop();
+
+	return true;
+}
 
 int Calculator::Run() {
 	char ch;
@@ -89,7 +134,27 @@ int Calculator::Run() {
 	oprs.push('#');
 	cin >> ch;
 	while (ch != '=') {
-		if (isdigit(ch)) {
+		if (ch=='(') {
+			AddOperator(ch);
+			cin >> ch;
+			if (ch == '-') {
+				ch = 'u';
+				AddOperator(ch);
+			}
+			else if(isdigit(ch)){
+				cin.putback(ch);
+				cin >> newoperand;
+				AddOperand(newoperand);
+			}
+			else if(ch!='='){
+				AddOperator(ch);
+			}
+			else {
+				cout << "NULL" << endl;
+				break;
+			}
+		}
+		else if (isdigit(ch)) {
 			cin.putback(ch);
 			cin >> newoperand;
 			AddOperand(newoperand);
@@ -97,6 +162,7 @@ int Calculator::Run() {
 		else {
 			AddOperator(ch);
 		}
+
 		cin >> ch;
 	}
 	AddOperator('#');
@@ -136,40 +202,48 @@ bool Calculator::Get2Operands(int& left, int& right) {
 };
 
 void Calculator::DoOperator(char op) {
-	int left, right;
-	bool result;
-
-	result = Get2Operands(left, right);
-	if (!result) {
-		Clear();
-		return;
+	if (op == 'u' || op == 'a') {
+		DoOperator1(op);
 	}
-	switch (op)
-	{
-	case '+':
-		opds.push(left + right);
-		break;
-	case '-':
-		opds.push(left - right);
-		break;
-	case '*':
-		opds.push(left * right);
-		break;
-	case '/':
-		if (right == 0) {
-			cout << "NULL" << endl;
+	else {
+		int left, right;
+		bool result;
+
+		result = Get2Operands(left, right);
+		if (!result) {
 			Clear();
 			return;
 		}
-		opds.push(left / right);
-		break;
-	case '^':
-		opds.push(pow(left, right));
-		break;
-	default:
-		break;
+		switch (op)
+		{
+		case '+':
+			opds.push(left + right);
+			break;
+		case '-':
+			opds.push(left - right);
+			break;
+		case '*':
+			opds.push(left * right);
+			break;
+		case '/':
+			if (right == 0) {
+				cout << "NULL" << endl;
+				Clear();
+				return;
+			}
+			opds.push(left / right);
+			break;
+		case '^':
+			opds.push(pow(left, right));
+			break;
+		case'%':
+			opds.push(left%right);
+			break;
+		default:
+			break;
+		}
+		return;
 	}
-	return;
 };
 
 void Calculator::AddOperator(char op) {
@@ -202,6 +276,9 @@ void Calculator::AddOperator(char op) {
 			return;
 		}
 		oprs.pop();
+	}
+	else if (op == 'b'||op=='s') {
+		return;
 	}
 	else {
 		while (!oprs.empty() && isp(oprs.top()) > icp(op)) {
