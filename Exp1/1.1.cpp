@@ -281,7 +281,7 @@ void Calculator::AddOperator(char op) {
 		return;
 	}
 	else {
-		while (!oprs.empty() && isp(oprs.top()) > icp(op)) {
+		while (!oprs.empty() && isp(oprs.top())-1 > icp(op)+1) {
 			DoOperator(oprs.top());
 			oprs.pop();
 		}
